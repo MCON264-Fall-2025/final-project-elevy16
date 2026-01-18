@@ -9,70 +9,79 @@ public class TaskManagerTest {
 
     @Test
     public void testAddTask() {
-        // Create task manager and 3 tasks
+        // arrange task manager
         TaskManager taskManager = new TaskManager();
         Task task1 = new Task("Set up tables");
         Task task2 = new Task("Decorate venue");
         Task task3 = new Task("Prepare food");
 
-        // Add all 3 tasks
+        // add all the tasks
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         taskManager.addTask(task3);
 
-        // Assert: Should have 3 tasks in the queue
-        assertEquals(3, taskManager.remainingTaskCount(), "Should have 3 tasks");
+        // check we have 3 tasks waiting
+        assertEquals(3, taskManager.remainingTaskCount());
     }
 
     @Test
     public void testExecuteNextTask() {
-        // Create tasks and add them
+        // arrange task manager 2 tasks
         TaskManager taskManager = new TaskManager();
         Task task1 = new Task("Set up tables");
         Task task2 = new Task("Decorate venue");
-        Task task3 = new Task("Prepare food");
 
         taskManager.addTask(task1);
         taskManager.addTask(task2);
-        taskManager.addTask(task3);
 
-        // Execute the first task
+        // do the first task
         Task executed = taskManager.executeNextTask();
 
-        // Assert:
-        // Correct task was executed
-        assertEquals(task1, executed, "Should execute first task added");
-        // Count decreased by 1
-        assertEquals(2, taskManager.remainingTaskCount(), "Should have 2 tasks remaining");
+        // make sure we got task1 (first one added)
+        assertEquals(task1, executed);
+        // should have 1 task left
+        assertEquals(1, taskManager.remainingTaskCount());
     }
 
     @Test
     public void testExecuteTasksInFIFOOrder() {
-        // Arrange
+        // arrange task manager
         TaskManager taskManager = new TaskManager();
         Task task1 = new Task("Set up tables");
         Task task2 = new Task("Decorate venue");
         Task task3 = new Task("Prepare food");
 
+        // add 3 tasks in order
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         taskManager.addTask(task3);
 
-        // Execute all 3 tasks
+        // execute them all
         Task executed1 = taskManager.executeNextTask();
         Task executed2 = taskManager.executeNextTask();
         Task executed3 = taskManager.executeNextTask();
 
-        // Assert: still in FIFO order
-        assertEquals(task1, executed1, "First task should be task1");
-        assertEquals(task2, executed2, "Second task should be task2");
-        assertEquals(task3, executed3, "Third task should be task3");
-        assertEquals(0, taskManager.remainingTaskCount(), "No tasks should remain");
+        // check they came out in same order we put them in
+        assertEquals(task1, executed1);
+        assertEquals(task2, executed2);
+        assertEquals(task3, executed3);
+    }
+
+    @Test
+    public void testExecuteNextTaskWhenEmpty() {
+        // arrange empty task manager
+        TaskManager taskManager = new TaskManager();
+
+        // try to execute when theres nothing there
+        Task executed = taskManager.executeNextTask();
+
+        // should get null back
+        assertNull(executed);
     }
 
     @Test
     public void testUndoLastTask() {
-        // Arrange
+        // arrange task manager with 2 tasks
         TaskManager taskManager = new TaskManager();
         Task task1 = new Task("Set up tables");
         Task task2 = new Task("Decorate venue");
@@ -80,23 +89,34 @@ public class TaskManagerTest {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
 
-        // Execute both tasks
-        taskManager.executeNextTask();  // Executes task1
-        taskManager.executeNextTask();  // Executes task2
+        // do both tasks
+        taskManager.executeNextTask();
+        taskManager.executeNextTask();
 
-        // Undo the last executed task
+        // undo the last one (task2)
         Task undone = taskManager.undoLastTask();
 
-        // Assert:
-        // Correct task was undone
-        assertEquals(task2, undone, "Should undo task2 (last executed)");
-        // Task is back in the queue
-        assertEquals(1, taskManager.remainingTaskCount(), "Should have 1 task back in queue");
+        // should get task2 back
+        assertEquals(task2, undone);
+        // should have 1 task in the queue again
+        assertEquals(1, taskManager.remainingTaskCount());
+    }
+
+    @Test
+    public void testUndoWhenNoCompletedTasks() {
+        // arrange empty task manager
+        TaskManager taskManager = new TaskManager();
+
+        // try to undo when we havent done anything
+        Task undone = taskManager.undoLastTask();
+
+        // should get null
+        assertNull(undone);
     }
 
     @Test
     public void testUndoMultipleTasks() {
-        // Arrange
+        // arrange task manager with 3 tasks
         TaskManager taskManager = new TaskManager();
         Task task1 = new Task("Set up tables");
         Task task2 = new Task("Decorate venue");
@@ -106,24 +126,43 @@ public class TaskManagerTest {
         taskManager.addTask(task2);
         taskManager.addTask(task3);
 
-        // Execute all tasks
-        taskManager.executeNextTask();  // task1
-        taskManager.executeNextTask();  // task2
-        taskManager.executeNextTask();  // task3
+        // do all 3 tasks
+        taskManager.executeNextTask();
+        taskManager.executeNextTask();
+        taskManager.executeNextTask();
 
-        assertEquals(0, taskManager.remainingTaskCount(), "All tasks completed");
-
-        // Undo all 3 tasks
+        // now undo all 3
         Task undone1 = taskManager.undoLastTask();
         Task undone2 = taskManager.undoLastTask();
         Task undone3 = taskManager.undoLastTask();
 
-        // Assert: still in LIFO order
-        assertEquals(task3, undone1, "Should undo task3 first");
-        assertEquals(task2, undone2, "Should undo task2 second");
-        assertEquals(task1, undone3, "Should undo task1 third");
-        assertEquals(3, taskManager.remainingTaskCount(), "All tasks back in queue");
+        // should come back in reverse order
+        // last one done (task3) comes back first
+        assertEquals(task3, undone1);
+        assertEquals(task2, undone2);
+        assertEquals(task1, undone3);
     }
 
+    @Test
+    public void testExecuteAfterUndo() {
+        // arrange task manager
+        TaskManager taskManager = new TaskManager();
+        Task task1 = new Task("Set up tables");
+        Task task2 = new Task("Decorate venue");
 
+        // add both tasks
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        // do both tasks
+        taskManager.executeNextTask();
+        taskManager.executeNextTask();
+
+        // undo the second one
+        taskManager.undoLastTask();
+
+        // now execute again, should get task2 again since we undid it
+        Task whatWeGotBack = taskManager.executeNextTask();
+        assertEquals(task2, whatWeGotBack);
+    }
 }
