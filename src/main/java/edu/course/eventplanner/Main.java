@@ -7,16 +7,18 @@ import edu.course.eventplanner.service.GuestListManager;
 import edu.course.eventplanner.service.SeatingPlanner;
 import edu.course.eventplanner.service.TaskManager;
 import edu.course.eventplanner.service.VenueSelector;
+import edu.course.eventplanner.util.Generators;
+
 
 import java.util.*;
 
 public class Main {
 
-    private GuestListManager guestManager;
-    private VenueSelector venueSelector;
-    private TaskManager taskManager;
-    private Venue selectedVenue;
-    private Map<Integer, List<Guest>> seating;
+    GuestListManager guestManager;
+    VenueSelector venueSelector;
+    TaskManager taskManager;
+    Venue selectedVenue;
+    Map<Integer, List<Guest>> seating;
 
     public Main() {
         guestManager = new GuestListManager();
@@ -51,15 +53,33 @@ public class Main {
             if (choice == 0) break;
 
             switch (choice) {
-                case 1: loadData(scanner); break;
-                case 2: addGuest(scanner); break;
-                case 3: removeGuest(scanner); break;
-                case 4: pickVenue(scanner); break;
-                case 5: makeSeating(); break;
-                case 6: addTask(scanner); break;
-                case 7: doTask(); break;
-                case 8: undoTask(); break;
-                case 9: printSummary(); break;
+                case 1:
+                    loadData(scanner);
+                    break;
+                case 2:
+                    addGuest(scanner);
+                    break;
+                case 3:
+                    removeGuest(scanner);
+                    break;
+                case 4:
+                    pickVenue(scanner);
+                    break;
+                case 5:
+                    makeSeating();
+                    break;
+                case 6:
+                    addTask(scanner);
+                    break;
+                case 7:
+                    doTask();
+                    break;
+                case 8:
+                    undoTask();
+                    break;
+                case 9:
+                    printSummary();
+                    break;
             }
         }
 
@@ -72,13 +92,13 @@ public class Main {
         s.nextLine();
 
         // generate sample guests and add them
-        List<Guest> guests = generateGuests(n);
+        List<Guest> guests = Generators.GenerateGuests(n);
         for (Guest g : guests) {
             guestManager.addGuest(g);
         }
 
         // generate venues for selection
-        List<Venue> venues = generateVenues();
+        List<Venue> venues = Generators.generateVenues();
         venueSelector = new VenueSelector(venues);
 
         System.out.println("Loaded " + n + " guests and " + venues.size() + " venues");
@@ -186,33 +206,5 @@ public class Main {
         }
 
         System.out.println("Tasks left: " + taskManager.remainingTaskCount());
-    }
-
-    // helper methods from assignment
-    private List<Guest> generateGuests(int n) {
-        List<Guest> guests = new ArrayList<>();
-        String[] names = {"Rivka", "Riva", "Reesa", "Rikki", "Rochel", "Rena", "Rory", "Rachie"};
-        String[] groups = {"family", "friends", "coworkers", "neighbors"};
-        Random rand = new Random();
-
-        // create n guests with random groups
-        for (int i = 0; i < n; i++) {
-            String name = names[i % names.length];
-            if (i >= names.length) name += (i / names.length);
-            String group = groups[rand.nextInt(groups.length)];
-            guests.add(new Guest(name, group));
-        }
-
-        return guests;
-    }
-
-    private List<Venue> generateVenues() {
-        List<Venue> venues = new ArrayList<>();
-        venues.add(new Venue("Wedding Ballroom", 15000, 300, 30, 10));
-        venues.add(new Venue("Garden Hall", 8000, 150, 15, 10));
-        venues.add(new Venue("Rooftop", 12000, 200, 20, 10));
-        venues.add(new Venue("Shul Hall", 5000, 100, 10, 10));
-        venues.add(new Venue("Beach House", 10000, 180, 18, 10));
-        return venues;
     }
 }
